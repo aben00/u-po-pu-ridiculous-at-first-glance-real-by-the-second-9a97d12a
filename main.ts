@@ -17,6 +17,27 @@ function isOneSentence(text: string): boolean {
   return terminators.length === 1 && /[.!?]$/.test(trimmed);
 }
 
+// The pitch must carry its three load-bearing parts in its own words:
+// something odd being sold, someone who pays for it, and a reason the
+// deal holds together. A sentence missing any of them is a joke, not a pitch.
+function checkPitchAnatomy(text: string): string[] {
+  const lower = text.toLowerCase();
+  const problems: string[] = [];
+  const sold = /\b(rent|lease|sell|offer|charge for)\b/.test(lower);
+  if (!sold) {
+    problems.push("pitch names nothing being sold");
+  }
+  const payer = /\b(pay|pays|paid|per |\$|subscriber|member)\b/.test(lower);
+  if (!payer) {
+    problems.push("pitch names nobody who pays");
+  }
+  const reason = /\bbecause\b/.test(lower);
+  if (!reason) {
+    problems.push("pitch gives no reason the deal holds together");
+  }
+  return problems;
+}
+
 function checkGate(text: string): string[] {
   const problems: string[] = [];
   const chars = [...text].length;
@@ -32,6 +53,7 @@ function checkGate(text: string): string[] {
   if (Buffer.from(text, "utf8").toString("utf8") !== text) {
     problems.push("entry is not valid UTF-8 round-trip text");
   }
+  problems.push(...checkPitchAnatomy(text));
   return problems;
 }
 
